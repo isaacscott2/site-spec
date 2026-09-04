@@ -317,6 +317,7 @@ export default function Home() {
               companyName,
               cameraCount,
               retentionDays,
+              resolution,
               storageTB: calculateStorageTB(),
               poeWattage: calculatePoEWattage(),
               conduitFill: 3,
