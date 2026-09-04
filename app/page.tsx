@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import dynamic from "next/dynamic";
 
 const QuotePDFLink = dynamic(
@@ -15,7 +15,7 @@ export interface CameraBreakdown {
   multisensor: number;
 }
 
-export default function Home() {
+function PageContent() {
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +71,6 @@ export default function Home() {
       if (data.breakdown) {
         setBreakdown(data.breakdown);
       } else {
-        // Fallback default distribution
         setBreakdown({
           dome: Math.ceil(detected * 0.6),
           bullet: Math.floor(detected * 0.25),
@@ -82,7 +81,7 @@ export default function Home() {
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Could not process image. Check OpenAI API Key.");
-    } fontally {
+    } finally {
       setLoading(false);
     }
   };
@@ -107,9 +106,9 @@ export default function Home() {
   const calculatePoEWattage = () => {
     const domeW = breakdown.dome * 15.4;
     const bulletW = breakdown.bullet * 18.0;
-    const ptzW = breakdown.ptz * 60.0; // High-PoE / Ultra-PoE budget
+    const ptzW = breakdown.ptz * 60.0;
     const multiW = breakdown.multisensor * 30.0;
-    return Math.ceil(domeW + bulletW + ptzW + multiW + 30); // 30W switch base overhead
+    return Math.ceil(domeW + bulletW + ptzW + multiW + 30);
   };
 
   const calculateLaborHours = () => {
@@ -118,7 +117,7 @@ export default function Home() {
       breakdown.bullet * 1.5 +
       breakdown.ptz * 2.5 +
       breakdown.multisensor * 2.0 +
-      8.0; // MDF setup
+      8.0;
     return hours.toFixed(1);
   };
 
@@ -252,7 +251,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Categorized Device Breakdown Modifiers */}
+        {/* Device Type Schedule */}
         <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 backdrop-blur-md shadow-xl">
           <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 font-mono mb-3">
             2. Detected Device Type Schedule ({cameraCount} Total Units)
@@ -418,5 +417,13 @@ export default function Home() {
 
       </div>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#050811] text-white p-8 font-mono">Loading SiteSpec Core Engine...</div>}>
+      <PageContent />
+    </Suspense>
   );
 }
