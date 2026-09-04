@@ -68,10 +68,16 @@ export default function Home() {
 
   // Calculation Engine (BICSI / IEEE standard estimates)
   const calculateStorageTB = () => {
-    const MbpsPerCam = resolution === "4K" ? 8 : resolution === "4MP" ? 4 : 2;
-    const totalGBPerDay = (cameraCount * MbpsPerCam * 3600 * 24) / (8 * 1024 * 1024);
-    return ((totalGBPerDay * retentionDays) / 1024).toFixed(2);
-  };
+  // Standard bitrates (in Mbps) based on resolution selection
+  const MbpsPerCam = resolution === "4K" ? 8 : resolution === "4MP" ? 4 : 2;
+  
+  // Formulas: (Mbps * 3600 sec/hr * 24 hrs/day) / 8 bits per Byte = Megabytes per day
+  const mbPerCamPerDay = (MbpsPerCam * 86400) / 8; // ~43,200 MB/day for 4MP
+  const totalGBPerDay = (cameraCount * mbPerCamPerDay) / 1024; // Convert MB to GB
+  const totalTB = (totalGBPerDay * retentionDays) / 1024; // Convert GB to TB over retention period
+
+  return totalTB.toFixed(2);
+};
 
   const calculatePoEWattage = () => {
     // 15.4W nominal PoE budget per port + 20W switch baseline overhead
