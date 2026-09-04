@@ -25,16 +25,24 @@ export async function POST(req: NextRequest) {
     }
 
     const prompt = `
-You are an expert Security Engineer and Low-Voltage Estimator.
-Scan this architectural blueprint meticulously and count all security camera symbols (cones, domes, bullets, PTZs, CAM-XX tags).
+You are an expert Security Engineer and Low-Voltage Estimator scanning an architectural blueprint.
+Identify and categorize all security camera symbols using the blueprint legend, labels, or symbol shapes.
 
-Rules:
-1. Scan every room, hallway, entry point, perimeter, and corner.
-2. Count every single camera symbol visible.
+Categories:
+- Dome Cameras (interior domes, standard fixed ceiling units)
+- Bullet Cameras (exterior/perimeter bullets, long-range IR units)
+- PTZ Cameras (pan-tilt-zoom, 90W high-power units)
+- Multisensor / Fisheye Cameras (180° / 360° wide-coverage units)
 
-Return ONLY a valid JSON object matching this structure:
+Return ONLY a valid JSON object matching this exact structure:
 {
   "cameraCount": number,
+  "breakdown": {
+    "dome": number,
+    "bullet": number,
+    "ptz": number,
+    "multisensor": number
+  },
   "reasoningSummary": "Short explanation of detected symbols"
 }
 `;
@@ -50,7 +58,7 @@ Return ONLY a valid JSON object matching this structure:
               type: "image_url",
               image_url: {
                 url: image,
-                detail: "auto", // Automatically optimizes image resolution payload
+                detail: "auto",
               },
             },
           ],
@@ -58,7 +66,7 @@ Return ONLY a valid JSON object matching this structure:
       ],
       response_format: { type: "json_object" },
       temperature: 0.1,
-      max_tokens: 300,
+      max_tokens: 400,
     });
 
     const rawContent = response.choices[0]?.message?.content;
@@ -72,20 +80,32 @@ Return ONLY a valid JSON object matching this structure:
 
     const parsedData = JSON.parse(rawContent);
 
-    // Fallback guarantee
+    const breakdown = {
+      dome: parsedData.breakdown?.dome ?? 0,
+      bullet: parsedData.breakdown?.bullet ?? 0,
+      ptz: parsedData.breakdown?.ptz ?? 0,
+      multisensor: parsedData.breakdown?.multisensor ?? 0,
+    };
+
+    const calculatedTotal =
+      breakdown.dome + breakdown.bullet + breakdown.ptz + breakdown.multisensor;
+    const finalCount =
+      parsedData.cameraCount && parsedData.cameraCount > 0
+        ? parsedData.cameraCount
+        : calculatedTotal;
+
     return NextResponse.json({
-      cameraCount: parsedData.cameraCount ?? parsedData.total_cameras ?? 0,
+      cameraCount: finalCount,
+      breakdown,
       reasoningSummary: parsedData.reasoningSummary || "Scan completed.",
     });
-
   } catch (error: any) {
     console.error("Vercel Serverless Route Error:", error);
-    
-    // GUARANTEE: Always return valid JSON, never raw HTML
     return NextResponse.json(
-      { 
+      {
         error: error.message || "Failed to parse blueprint.",
-        cameraCount: 0 
+        cameraCount: 0,
+        breakdown: { dome: 0, bullet: 0, ptz: 0, multisensor: 0 },
       },
       { status: 500 }
     );
