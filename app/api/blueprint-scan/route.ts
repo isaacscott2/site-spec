@@ -1,57 +1,83 @@
-import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { imageBase64 } = await req.json();
+    const { image } = await req.json();
 
-    if (!imageBase64) {
-      return NextResponse.json({ error: 'Image file is required' }, { status: 400 });
+    if (!image) {
+      return NextResponse.json(
+        { error: "No blueprint image provided." },
+        { status: 400 }
+      );
     }
 
-    // Strip out the base64 prefix if present (e.g. "data:image/png;base64,")
-    const cleanBase64 = imageBase64.includes('base64,')
-      ? imageBase64.split('base64,')[1]
-      : imageBase64;
+    // High-precision prompt optimized for security & low-voltage CAD drawings
+    const prompt = `
+You are an expert Senior Security Design Engineer and Low-Voltage Estimator.
+Analyze this architectural/security blueprint drawing meticulously to extract IP camera counts and infrastructure sizing factors.
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: `You are an expert commercial low-voltage estimator. Analyze the provided floor plan/blueprint image.
-Count all camera symbols, access control doors, and data drops.
-Return ONLY a valid JSON object matching this schema:
+CRITICAL DETECTION RULES:
+1. CAMERA SYMBOLS:
+   - Scan every room, hallway, entry point, perimeter boundary, and corner.
+   - Look for standard CCTV symbols: cone/triangle field-of-view indicators, circular dome icons, camera body outlines, and text tags like "CAM-XX", "CCTV", "C-01", etc.
+   - Pay extra attention to dark-mode/inverted floor plans, low-contrast vector lines, and high-density areas (like MDF/IDF rooms or lobbies).
+   - Count EVERY distinct physical camera location shown.
+
+2. INDUSTRY STANDARDS & REFERENCE METHODOLOGY:
+   - Base all calculations on ANSI/BICSI 005 (Security System Design), IEEE 802.3at/bt (PoE Standards), and NEC Article 352/358 (Conduit Fill Rules).
+
+RETURN ONLY A VALID JSON OBJECT matching this exact structure (no markdown formatting, no code fences):
 {
   "cameraCount": number,
-  "confidenceNotes": "string"
-}`,
-        },
+  "confidenceScore": number,
+  "detectedZones": [
+    { "zoneName": string, "count": number }
+  ],
+  "reasoningSummary": "Brief 1-2 sentence engineering justification of the count based on detected visual symbols."
+}
+`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
         {
-          role: 'user',
+          role: "user",
           content: [
-            { type: 'text', text: 'Count the camera symbols in this image.' },
+            { type: "text", text: prompt },
             {
-              type: 'image_url',
+              type: "image_url",
               image_url: {
-                url: `data:image/jpeg;base64,${cleanBase64}`,
+                url: image,
+                detail: "high", // Forces high-resolution tile analysis
               },
             },
           ],
         },
       ],
-      response_format: { type: 'json_object' },
+      response_format: { type: "json_object" },
+      temperature: 0.1, // Low temperature minimizes hallucinations
+      max_tokens: 500,
     });
 
-    const parsedData = JSON.parse(response.choices[0].message.content || '{}');
+    const content = response.choices[0]?.message?.content;
 
-    return NextResponse.json({ success: true, data: parsedData });
+    if (!content) {
+      throw new Error("Failed to receive response from OpenAI Vision.");
+    }
+
+    const data = JSON.parse(content);
+
+    return NextResponse.json(data);
   } catch (error: any) {
-    console.error('OpenAI Vision Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Vision API Error:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to parse blueprint." },
+      { status: 500 }
+    );
   }
 }
