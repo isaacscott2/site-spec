@@ -84,70 +84,74 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[#070b14] text-slate-100 p-4 md:p-8 font-sans selection:bg-blue-500 selection:text-white antialiased">
+    <main className="min-h-screen bg-[#050811] text-slate-100 p-4 md:p-8 font-sans selection:bg-red-600 selection:text-white antialiased">
       <div className="max-w-6xl mx-auto space-y-6">
         
-        {/* Navigation / Header Bar */}
-        <header className="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 md:p-5 backdrop-blur-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-2xl">
+        {/* Defense Tactical Header Bar */}
+        <header className="bg-slate-900/90 border border-red-900/40 rounded-2xl p-4 md:p-5 backdrop-blur-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-2xl shadow-red-950/20">
           <div className="flex items-center gap-3.5">
-            {/* Custom SiteSpec Camera/Crosshair Logo */}
-            <div className="relative w-11 h-11 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 border border-blue-400/30">
-              <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-                <circle cx="12" cy="13" r="3" />
+            {/* Tactical Target Reticle Logo */}
+            <div className="relative w-11 h-11 bg-gradient-to-br from-red-600 to-red-900 rounded-xl flex items-center justify-center shadow-lg shadow-red-600/30 border border-red-400/40">
+              <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="9" />
+                <line x1="12" y1="3" x2="12" y2="7" />
+                <line x1="12" y1="17" x2="12" y2="21" />
+                <line x1="3" y1="12" x2="7" y2="12" />
+                <line x1="17" y1="12" x2="21" y2="12" />
+                <circle cx="12" cy="12" r="3" fill="currentColor" />
               </svg>
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-black tracking-tight text-white font-mono">
-                  SITESPEC<span className="text-blue-500">.AI</span>
+                  SITESPEC<span className="text-red-500">.DEFENSE</span>
                 </h1>
-                <span className="bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
-                  ENTERPRISE
+                <span className="bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
+                  CLASSIFIED / PRO
                 </span>
               </div>
               <p className="text-xs text-slate-400 font-medium">
-                Automated Infrastructure Takeoffs & Engineering Sizing
+                Automated Defense Infrastructure Sizing & Blueprint Intelligence
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-1.5 flex items-center gap-2 text-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-slate-300 font-mono text-[11px] font-semibold">GPT-4o Vision</span>
+            <div className="bg-slate-950/80 border border-red-900/30 rounded-xl px-3 py-1.5 flex items-center gap-2 text-xs">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+              <span className="text-slate-300 font-mono text-[11px] font-semibold">GPT-4o Vision HUD</span>
             </div>
             <input
               type="text"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              className="bg-slate-950 border border-slate-800 text-xs text-slate-200 rounded-xl px-3.5 py-2 focus:outline-none focus:border-blue-500 transition w-full md:w-52 font-medium"
-              placeholder="Company Name"
+              className="bg-slate-950 border border-slate-800 text-xs text-slate-200 rounded-xl px-3.5 py-2 focus:outline-none focus:border-red-500 transition w-full md:w-52 font-medium"
+              placeholder="Defense Contractor Name"
             />
           </div>
         </header>
 
-        {/* Upload & Vision Panel */}
-        <section className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-md shadow-xl">
+        {/* Blueprint Scanning Panel */}
+        <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md shadow-xl">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 font-mono flex items-center gap-2">
-              <span className="w-2 h-2 bg-blue-500 rounded-full" />
-              1. Architectural Blueprint Input
+            <h2 className="text-xs font-bold uppercase tracking-widest text-red-400 font-mono flex items-center gap-2">
+              <span className="w-2 h-2 bg-red-500 rounded-full" />
+              1. Tactical Floor Plan / Blueprint Scan
             </h2>
             {image && (
               <button
                 onClick={() => setImage(null)}
                 className="text-xs text-slate-400 hover:text-red-400 transition font-medium"
               >
-                Clear Drawing
+                Reset Drawing
               </button>
             )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col justify-between space-y-4">
-              <label className="border-2 border-dashed border-slate-800 hover:border-blue-500/50 bg-slate-950/60 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition group">
-                <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-blue-400 group-hover:bg-blue-500/10 transition mb-3 border border-slate-800">
+              <label className="border-2 border-dashed border-slate-800 hover:border-red-500/50 bg-slate-950/80 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition group">
+                <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-red-400 group-hover:bg-red-500/10 transition mb-3 border border-slate-800">
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
@@ -156,7 +160,7 @@ export default function Home() {
                   Upload CAD Blueprint or Floor Plan
                 </span>
                 <span className="text-[11px] text-slate-500 mt-1 font-medium">
-                  Supports PNG, JPG, or Dark-Mode Vector Exports
+                  Supports High-Res PNG, JPG, or Dark-Mode Vector CAD
                 </span>
                 <input
                   type="file"
@@ -170,20 +174,20 @@ export default function Home() {
                 <button
                   onClick={handleScanBlueprint}
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition disabled:opacity-50 shadow-lg shadow-blue-600/20 text-sm tracking-wide"
+                  className="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-bold py-3 rounded-xl transition disabled:opacity-50 shadow-lg shadow-red-600/30 text-sm tracking-wider uppercase font-mono"
                 >
-                  {loading ? "Analyzing Blueprint Geometry..." : "Run AI Symbol Detection"}
+                  {loading ? "Targeting & Scanning Symbols..." : "Execute AI Symbol Detection"}
                 </button>
               )}
 
               {error && (
-                <div className="p-3 bg-red-950/40 border border-red-800/50 rounded-xl text-red-300 text-xs flex items-center gap-2">
+                <div className="p-3 bg-red-950/80 border border-red-700 rounded-xl text-red-200 text-xs flex items-center gap-2 font-mono">
                   <span>⚠️</span> {error}
                 </div>
               )}
             </div>
 
-            {/* Blueprint Preview Box */}
+            {/* Blueprint Preview Window */}
             <div className="bg-slate-950 border border-slate-800/80 rounded-xl h-56 flex items-center justify-center overflow-hidden relative">
               {image ? (
                 <img
@@ -196,15 +200,15 @@ export default function Home() {
                   <svg className="w-8 h-8 text-slate-700 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 20l-5.447-2.724A2 2 0 013 15.482V6a2 2 0 011.053-1.764l5-2.5a2 2 0 011.894 0l5 2.5A2 2 0 0117 6v9.482a2 2 0 01-.553 1.254L11 20.482a2 2 0 01-2 0z" />
                   </svg>
-                  <p className="text-xs text-slate-600 font-medium">No floor plan loaded in viewer</p>
+                  <p className="text-xs text-slate-600 font-mono">No target loaded in optical feed</p>
                 </div>
               )}
             </div>
           </div>
         </section>
 
-        {/* Interactive Engineering Controls */}
-        <section className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-md shadow-xl grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Tactical Controls */}
+        <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md shadow-xl grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
               Project Identifier
@@ -213,7 +217,7 @@ export default function Home() {
               type="text"
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 text-xs text-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-500 font-medium"
+              className="w-full bg-slate-950 border border-slate-800 text-xs text-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-red-500 font-mono"
             />
           </div>
 
@@ -228,7 +232,7 @@ export default function Home() {
               >
                 -
               </button>
-              <span className="flex-1 text-center font-mono font-black text-sm text-blue-400">
+              <span className="flex-1 text-center font-mono font-black text-sm text-red-400">
                 {cameraCount} Cams
               </span>
               <button
@@ -249,9 +253,9 @@ export default function Home() {
                 <button
                   key={res}
                   onClick={() => setResolution(res)}
-                  className={`py-1 text-[11px] font-bold rounded-lg transition ${
+                  className={`py-1 text-[11px] font-bold rounded-lg transition font-mono ${
                     resolution === res
-                      ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                      ? "bg-red-600 text-white shadow-md shadow-red-600/30"
                       : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
@@ -268,7 +272,7 @@ export default function Home() {
             <select
               value={retentionDays}
               onChange={(e) => setRetentionDays(Number(e.target.value))}
-              className="w-full bg-slate-950 border border-slate-800 text-xs text-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-500 font-medium"
+              className="w-full bg-slate-950 border border-slate-800 text-xs text-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-red-500 font-mono"
             >
               <option value={15}>15 Days Retention</option>
               <option value={30}>30 Days Retention</option>
@@ -280,37 +284,37 @@ export default function Home() {
 
         {/* Live Calculation Cards Grid */}
         <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4">
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest font-mono">NVR Storage</span>
             <div className="text-xl font-black text-white mt-1 font-mono">{calculateStorageTB()} TB</div>
             <span className="text-[9px] text-slate-400 font-medium">{retentionDays}-day target</span>
           </div>
 
-          <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4">
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest font-mono">PoE Power</span>
-            <div className="text-xl font-black text-blue-400 mt-1 font-mono">{calculatePoEWattage()} W</div>
+            <div className="text-xl font-black text-red-400 mt-1 font-mono">{calculatePoEWattage()} W</div>
             <span className="text-[9px] text-slate-400 font-medium">802.3at standard</span>
           </div>
 
-          <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4">
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest font-mono">Conduit Fill</span>
             <div className="text-xl font-black text-white mt-1 font-mono">3 Cat6</div>
             <span className="text-[9px] text-slate-400 font-medium">3/4" EMT per NEC</span>
           </div>
 
-          <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4">
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest font-mono">Bandwidth</span>
             <div className="text-xl font-black text-white mt-1 font-mono">~{calculateMbps()} Mbps</div>
             <span className="text-[9px] text-slate-400 font-medium">H.265 main profile</span>
           </div>
 
-          <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4">
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest font-mono">PoE Hardware</span>
-            <div className="text-xl font-black text-blue-400 mt-1 font-mono">{cameraCount > 16 ? "24-Port" : "16-Port"}</div>
+            <div className="text-xl font-black text-red-400 mt-1 font-mono">{cameraCount > 16 ? "24-Port" : "16-Port"}</div>
             <span className="text-[9px] text-slate-400 font-medium">Managed PoE+</span>
           </div>
 
-          <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4">
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest font-mono">Est. Labor</span>
             <div className="text-xl font-black text-white mt-1 font-mono">{calculateLaborHours()} Hrs</div>
             <span className="text-[9px] text-slate-400 font-medium">Field + Config</span>
