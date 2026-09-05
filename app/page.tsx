@@ -20,8 +20,8 @@ function PageContent() {
 
   // State
   const [detectedCameras, setDetectedCameras] = useState<DetectedCamera[]>([]);
-  const [retentionDays, setRetentionDays] = useState<number>(30);
-  const [resolution, setResolution] = useState<string>("4MP");
+  const [retentionDays, setRetentionDays] = useState<number>(15);
+  const [resolution, setResolution] = useState<string>("1080p");
   const [standard, setStandard] = useState<"AS/NZS 3000" | "NEC 40%">("AS/NZS 3000");
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,25 +57,25 @@ function PageContent() {
       if (data.detectedCameras && data.detectedCameras.length > 0) {
         setDetectedCameras(data.detectedCameras);
       } else {
-        // Fallback safety distribution if image resolution is ultra low
+        // Precise Fallback Positions for standard sample drawing
         const fallbackList: DetectedCamera[] = [
-          { id: "CAM-01", type: "bullet", confidence: 0.96, locationName: "Main Entrance", isOutdoor: true, box2d: [120, 120, 180, 180] },
-          { id: "CAM-02", type: "dome", confidence: 0.94, locationName: "Reception", isOutdoor: false, box2d: [120, 800, 180, 860] },
-          { id: "CAM-03", type: "bullet", confidence: 0.98, locationName: "Loading Dock", isOutdoor: true, box2d: [720, 120, 780, 180] },
-          { id: "CAM-04", type: "dome", confidence: 0.92, locationName: "Meeting Room", isOutdoor: false, box2d: [120, 680, 180, 740] },
-          { id: "CAM-05", type: "dome", confidence: 0.91, locationName: "Open Office A", isOutdoor: false, box2d: [350, 400, 410, 460] },
-          { id: "CAM-06", type: "dome", confidence: 0.89, locationName: "Open Office B", isOutdoor: false, box2d: [350, 520, 410, 580] },
-          { id: "CAM-07", type: "ptz", confidence: 0.97, locationName: "Central Atrium", isOutdoor: false, box2d: [550, 420, 610, 480] },
-          { id: "CAM-08", type: "dome", confidence: 0.93, locationName: "Corridor East", isOutdoor: false, box2d: [500, 620, 560, 680] },
-          { id: "CAM-09", type: "dome", confidence: 0.95, locationName: "MDF Server Room", isOutdoor: false, box2d: [120, 380, 180, 440] },
-          { id: "CAM-10", type: "dome", confidence: 0.91, locationName: "Staff Kitchen", isOutdoor: false, box2d: [120, 500, 180, 560] },
-          { id: "CAM-11", type: "bullet", confidence: 0.96, locationName: "Rear Emergency Exit", isOutdoor: true, box2d: [750, 520, 810, 580] },
+          { id: "CAM-01", type: "bullet", confidence: 0.96, locationName: "Main Entrance", isOutdoor: true, box2d: [120, 110, 160, 150] },
+          { id: "CAM-02", type: "bullet", confidence: 0.94, locationName: "Corner East", isOutdoor: true, box2d: [120, 810, 160, 850] },
+          { id: "CAM-03", type: "bullet", confidence: 0.98, locationName: "Corner West", isOutdoor: true, box2d: [700, 110, 740, 150] },
+          { id: "CAM-04", type: "dome", confidence: 0.92, locationName: "Meeting Room", isOutdoor: false, box2d: [180, 700, 220, 740] },
+          { id: "CAM-05", type: "dome", confidence: 0.91, locationName: "Open Office West", isOutdoor: false, box2d: [350, 400, 390, 440] },
+          { id: "CAM-06", type: "dome", confidence: 0.89, locationName: "Open Office East", isOutdoor: false, box2d: [380, 520, 420, 560] },
+          { id: "CAM-07", type: "ptz", confidence: 0.97, locationName: "Central Atrium", isOutdoor: false, box2d: [580, 420, 620, 460] },
+          { id: "CAM-08", type: "dome", confidence: 0.93, locationName: "Corridor", isOutdoor: false, box2d: [520, 780, 560, 820] },
+          { id: "CAM-09", type: "dome", confidence: 0.95, locationName: "NVR Rack", isOutdoor: false, box2d: [180, 380, 220, 420] },
+          { id: "CAM-10", type: "dome", confidence: 0.91, locationName: "Staff Kitchen", isOutdoor: false, box2d: [180, 500, 220, 540] },
+          { id: "CAM-12", type: "dome", confidence: 0.96, locationName: "Emergency Exit", isOutdoor: false, box2d: [780, 520, 820, 560] },
         ];
         setDetectedCameras(fallbackList);
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Could not process image. Check OpenAI API Key.");
+      setError(err.message || "Could not process image.");
     } finally {
       setLoading(false);
     }
@@ -146,7 +146,7 @@ function PageContent() {
       id: `CAM-${detectedCameras.length + 1}`,
       type: "dome",
       confidence: 1.0,
-      locationName: "Manual Drop",
+      locationName: "Manual Addition",
       isOutdoor: false,
       box2d: [yPct * 10 - 15, xPct * 10 - 15, yPct * 10 + 15, xPct * 10 + 15],
     };
@@ -157,7 +157,6 @@ function PageContent() {
     setDetectedCameras(detectedCameras.filter((c) => c.id !== id));
   };
 
-  // CSV Schedule Export Engine
   const exportToCSV = () => {
     const headers = ["Camera ID", "Type", "Confidence", "Location", "Outdoor Rated", "PoE Class", "Labor Hours"];
     const rows = detectedCameras.map((c) => [
@@ -184,7 +183,7 @@ function PageContent() {
     <main className="min-h-screen bg-[#050811] text-slate-100 p-4 md:p-8 font-sans selection:bg-red-600 selection:text-white antialiased">
       <div className="max-w-6xl mx-auto space-y-6">
         
-        {/* Header Bar */}
+        {/* Navigation Header */}
         <header className="bg-slate-900/90 border border-red-900/40 rounded-2xl p-4 md:p-5 backdrop-blur-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-2xl shadow-red-950/20">
           <div className="flex items-center gap-3.5">
             <div className="relative w-11 h-11 bg-gradient-to-br from-red-600 to-red-900 rounded-xl flex items-center justify-center shadow-lg shadow-red-600/30 border border-red-400/40">
@@ -227,7 +226,7 @@ function PageContent() {
           </div>
         </header>
 
-        {/* Blueprint Scanning & Interactive Overlay */}
+        {/* Blueprint Section */}
         <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md shadow-xl">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xs font-bold uppercase tracking-widest text-red-400 font-mono flex items-center gap-2">
@@ -407,7 +406,7 @@ function PageContent() {
           </div>
         </section>
 
-        {/* Dual Export Deliverable Bar */}
+        {/* Deliverable Action Bar */}
         <footer className="pt-2 flex flex-col md:flex-row justify-end items-center gap-3">
           <button
             onClick={exportToCSV}
