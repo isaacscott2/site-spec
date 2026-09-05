@@ -14,7 +14,16 @@ export interface PDFData {
   projectName: string;
   companyName: string;
   cameraCount: number;
+  breakdown: {
+    dome: number;
+    bullet: number;
+    ptz: number;
+    multisensor: number;
+    varifocal?: number;
+    unknown?: number;
+  };
   retentionDays: number;
+  resolution: string;
   storageTB: string;
   poeWattage: number;
   conduitFill: number;
@@ -22,63 +31,58 @@ export interface PDFData {
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 36,
-    paddingBottom: 40,
-    paddingHorizontal: 40,
+    paddingTop: 32,
+    paddingBottom: 36,
+    paddingHorizontal: 36,
     backgroundColor: "#ffffff",
     fontFamily: "Helvetica",
   },
-  
-  // Header Component
   headerContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    paddingBottom: 14,
+    paddingBottom: 10,
     borderBottomWidth: 2,
     borderBottomColor: "#0f172a",
-    marginBottom: 16,
+    marginBottom: 12,
   },
   companyName: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#0f172a",
-    letterSpacing: 0.5,
   },
   projectTitle: {
-    fontSize: 10,
+    fontSize: 9,
     color: "#475569",
-    marginTop: 3,
+    marginTop: 2,
     fontWeight: "bold",
   },
   metaBlock: {
     alignItems: "flex-end",
   },
   badge: {
-    fontSize: 7.5,
+    fontSize: 7,
     fontWeight: "bold",
     color: "#ffffff",
-    backgroundColor: "#1e3a8a",
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 3,
-    marginBottom: 4,
+    backgroundColor: "#991b1b",
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 2,
+    marginBottom: 3,
   },
   metaText: {
-    fontSize: 8,
+    fontSize: 7.5,
     color: "#64748b",
   },
-
-  // Executive Summary Bar
   heroBar: {
     backgroundColor: "#f8fafc",
     borderWidth: 1,
     borderColor: "#e2e8f0",
     borderRadius: 4,
-    padding: 10,
+    padding: 8,
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 18,
+    marginBottom: 12,
   },
   heroItem: {
     flex: 1,
@@ -89,39 +93,59 @@ const styles = StyleSheet.create({
     borderRightColor: "#cbd5e1",
   },
   heroLabel: {
-    fontSize: 7,
+    fontSize: 6.5,
     color: "#64748b",
     textTransform: "uppercase",
     fontWeight: "bold",
-    marginBottom: 2,
   },
   heroValue: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "bold",
-    color: "#1e3a8a",
+    color: "#991b1b",
+    marginTop: 1,
   },
-
-  // Section Layouts
   section: {
-    marginBottom: 14,
+    marginBottom: 10,
   },
   sectionTitleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
     borderBottomWidth: 1,
     borderBottomColor: "#cbd5e1",
-    paddingBottom: 4,
-    marginBottom: 8,
+    paddingBottom: 3,
+    marginBottom: 6,
   },
   sectionTitle: {
-    fontSize: 9.5,
+    fontSize: 9,
     fontWeight: "bold",
     color: "#0f172a",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
   },
-
-  // Metric Cards Grid
+  table: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 3,
+    marginBottom: 8,
+  },
+  tableHeader: {
+    flexDirection: "row",
+    backgroundColor: "#f1f5f9",
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: "#cbd5e1",
+  },
+  tableRow: {
+    flexDirection: "row",
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  col1: { width: "35%", fontSize: 7.5, color: "#334155", fontWeight: "bold" },
+  col2: { width: "15%", fontSize: 7.5, color: "#0f172a", textAlign: "center" },
+  col3: { width: "25%", fontSize: 7.5, color: "#475569" },
+  col4: { width: "25%", fontSize: 7.5, color: "#475569" },
+  th: { fontSize: 7, fontWeight: "bold", color: "#475569", textTransform: "uppercase" },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -132,44 +156,39 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8fafc",
     borderWidth: 1,
     borderColor: "#f1f5f9",
-    borderRadius: 4,
-    padding: 7,
-    marginBottom: 6,
+    borderRadius: 3,
+    padding: 6,
+    marginBottom: 5,
   },
   cardLabel: {
-    fontSize: 7,
+    fontSize: 6.5,
     color: "#64748b",
     textTransform: "uppercase",
     fontWeight: "bold",
   },
   cardValue: {
-    fontSize: 9.5,
+    fontSize: 9,
     fontWeight: "bold",
     color: "#0f172a",
-    marginTop: 2,
-  },
-  cardSub: {
-    fontSize: 7,
-    color: "#94a3b8",
     marginTop: 1,
   },
-
-  // Narrative
+  cardSub: {
+    fontSize: 6.5,
+    color: "#94a3b8",
+  },
   narrativeText: {
-    fontSize: 8,
+    fontSize: 7.5,
     color: "#334155",
-    lineHeight: 1.45,
+    lineHeight: 1.4,
     backgroundColor: "#fafafa",
-    padding: 8,
-    borderRadius: 4,
+    padding: 6,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: "#f1f5f9",
   },
-
-  // Sign-off Block
   signatureContainer: {
-    marginTop: 16,
-    paddingTop: 12,
+    marginTop: 12,
+    paddingTop: 10,
     flexDirection: "row",
     justifyContent: "space-between",
   },
@@ -179,48 +198,59 @@ const styles = StyleSheet.create({
   sigLine: {
     borderBottomWidth: 1,
     borderBottomColor: "#94a3b8",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   sigLabel: {
-    fontSize: 7.5,
+    fontSize: 7,
     fontWeight: "bold",
     color: "#475569",
     textTransform: "uppercase",
   },
   sigSub: {
-    fontSize: 6.5,
+    fontSize: 6,
     color: "#94a3b8",
   },
-
-  // Footer
   footer: {
     position: "absolute",
-    bottom: 24,
-    left: 40,
-    right: 40,
+    bottom: 20,
+    left: 36,
+    right: 36,
     borderTopWidth: 1,
     borderTopColor: "#f1f5f9",
-    paddingTop: 6,
+    paddingTop: 4,
     flexDirection: "row",
     justifyContent: "space-between",
   },
   footerText: {
-    fontSize: 7,
+    fontSize: 6.5,
     color: "#94a3b8",
   },
 });
 
 const MyDocument = ({ data }: { data: PDFData }) => {
-  const estimatedMbps = data.cameraCount * 4;
-  const fieldLaborHours = (data.cameraCount * 1.5).toFixed(1);
-  const configLaborHours = "8.0";
+  const domeCount = data.breakdown?.dome || 0;
+  const bulletCount = data.breakdown?.bullet || 0;
+  const ptzCount = data.breakdown?.ptz || 0;
+  const multiCount = data.breakdown?.multisensor || 0;
+  const variCount = data.breakdown?.varifocal || 0;
+  const unknownCount = data.breakdown?.unknown || 0;
+
+  const fieldLaborHours = (
+    domeCount * 1.2 +
+    bulletCount * 1.5 +
+    ptzCount * 2.5 +
+    multiCount * 2.0 +
+    variCount * 1.6 +
+    unknownCount * 1.5
+  ).toFixed(1);
+
   const totalLaborHours = (parseFloat(fieldLaborHours) + 8).toFixed(1);
 
   return (
     <Document>
       <Page size="LETTER" style={styles.page}>
         
-        {/* Document Header */}
+        {/* Header */}
         <View style={styles.headerContainer}>
           <View>
             <Text style={styles.companyName}>{data.companyName.toUpperCase()}</Text>
@@ -229,15 +259,15 @@ const MyDocument = ({ data }: { data: PDFData }) => {
             </Text>
           </View>
           <View style={styles.metaBlock}>
-            <Text style={styles.badge}>BICSI / IEEE COMPLIANT</Text>
+            <Text style={styles.badge}>AS/NZS & BICSI COMPLIANT</Text>
             <Text style={styles.metaText}>
               DATE: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
             </Text>
-            <Text style={styles.metaText}>ENGINEERING SCOPE ESTIMATE</Text>
+            <Text style={styles.metaText}>CATEGORIZED HARDWARE SCOPE</Text>
           </View>
         </View>
 
-        {/* Executive Summary Bar */}
+        {/* Hero Summary */}
         <View style={styles.heroBar}>
           <View style={[styles.heroItem, styles.heroBorder]}>
             <Text style={styles.heroLabel}>Total Cameras</Text>
@@ -248,7 +278,7 @@ const MyDocument = ({ data }: { data: PDFData }) => {
             <Text style={styles.heroValue}>{data.storageTB} TB</Text>
           </View>
           <View style={[styles.heroItem, styles.heroBorder]}>
-            <Text style={styles.heroLabel}>PoE Power Budget</Text>
+            <Text style={styles.heroLabel}>PoE Load Target</Text>
             <Text style={styles.heroValue}>{data.poeWattage} W</Text>
           </View>
           <View style={styles.heroItem}>
@@ -257,99 +287,121 @@ const MyDocument = ({ data }: { data: PDFData }) => {
           </View>
         </View>
 
-        {/* Section 1: Video & NVR Architecture */}
+        {/* Table Schedule */}
         <View style={styles.section}>
           <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle}>1. Surveillance & Storage Architecture</Text>
+            <Text style={styles.sectionTitle}>1. Categorized Camera Hardware Schedule</Text>
           </View>
-          <View style={styles.grid}>
-            <View style={styles.card}>
-              <Text style={styles.cardLabel}>System Scale</Text>
-              <Text style={styles.cardValue}>{data.cameraCount} IP Devices</Text>
-              <Text style={styles.cardSub}>4MP / 15 FPS Baseline</Text>
+
+          <View style={styles.table}>
+            <View style={styles.tableHeader}>
+              <Text style={[styles.col1, styles.th]}>Device Type</Text>
+              <Text style={[styles.col2, styles.th]}>Qty</Text>
+              <Text style={[styles.col3, styles.th]}>PoE Power Standard</Text>
+              <Text style={[styles.col4, styles.th]}>Labor Sizing</Text>
             </View>
-            <View style={styles.card}>
-              <Text style={styles.cardLabel}>Network Throughput</Text>
-              <Text style={styles.cardValue}>~{estimatedMbps} Mbps</Text>
-              <Text style={styles.cardSub}>H.265 Main Profile Codec</Text>
-            </View>
-            <View style={styles.card}>
-              <Text style={styles.cardLabel}>Storage Array Capacity</Text>
-              <Text style={styles.cardValue}>{data.storageTB} TB Net Target</Text>
-              <Text style={styles.cardSub}>{data.retentionDays}-Day Continuous Retention</Text>
-            </View>
-            <View style={styles.card}>
-              <Text style={styles.cardLabel}>Recommended Head-End</Text>
-              <Text style={styles.cardValue}>{data.cameraCount > 16 ? "32-Channel" : "16-Channel"} NVR</Text>
-              <Text style={styles.cardSub}>RAID-5 Storage Configuration</Text>
-            </View>
+
+            {domeCount > 0 && (
+              <View style={styles.tableRow}>
+                <Text style={styles.col1}>Interior Dome Cameras</Text>
+                <Text style={styles.col2}>{domeCount}</Text>
+                <Text style={styles.col3}>IEEE 802.3af (15.4W)</Text>
+                <Text style={styles.col4}>{(domeCount * 1.2).toFixed(1)} Hours</Text>
+              </View>
+            )}
+
+            {bulletCount > 0 && (
+              <View style={styles.tableRow}>
+                <Text style={styles.col1}>Perimeter Bullet Cameras</Text>
+                <Text style={styles.col2}>{bulletCount}</Text>
+                <Text style={styles.col3}>IEEE 802.3af (18.0W)</Text>
+                <Text style={styles.col4}>{(bulletCount * 1.5).toFixed(1)} Hours</Text>
+              </View>
+            )}
+
+            {ptzCount > 0 && (
+              <View style={styles.tableRow}>
+                <Text style={styles.col1}>PTZ High-Power Cameras</Text>
+                <Text style={styles.col2}>{ptzCount}</Text>
+                <Text style={styles.col3}>IEEE 802.3bt High-PoE (60W)</Text>
+                <Text style={styles.col4}>{(ptzCount * 2.5).toFixed(1)} Hours</Text>
+              </View>
+            )}
+
+            {multiCount > 0 && (
+              <View style={styles.tableRow}>
+                <Text style={styles.col1}>180° / Multisensor Units</Text>
+                <Text style={styles.col2}>{multiCount}</Text>
+                <Text style={styles.col3}>IEEE 802.3at PoE+ (30W)</Text>
+                <Text style={styles.col4}>{(multiCount * 2.0).toFixed(1)} Hours</Text>
+              </View>
+            )}
+
+            {variCount > 0 && (
+              <View style={styles.tableRow}>
+                <Text style={styles.col1}>Varifocal Motorized Units</Text>
+                <Text style={styles.col2}>{variCount}</Text>
+                <Text style={styles.col3}>IEEE 802.3at PoE+ (20W)</Text>
+                <Text style={styles.col4}>{(variCount * 1.6).toFixed(1)} Hours</Text>
+              </View>
+            )}
+
+            {unknownCount > 0 && (
+              <View style={styles.tableRow}>
+                <Text style={styles.col1}>Unclassified / Other Drops</Text>
+                <Text style={styles.col2}>{unknownCount}</Text>
+                <Text style={styles.col3}>IEEE 802.3af Baseline</Text>
+                <Text style={styles.col4}>{(unknownCount * 1.5).toFixed(1)} Hours</Text>
+              </View>
+            )}
           </View>
         </View>
 
-        {/* Section 2: Power & Pathways */}
+        {/* Infrastructure Section */}
         <View style={styles.section}>
           <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle}>2. Power & Pathways Infrastructure</Text>
+            <Text style={styles.sectionTitle}>2. Infrastructure & Head-End Sizing</Text>
           </View>
           <View style={styles.grid}>
             <View style={styles.card}>
-              <Text style={styles.cardLabel}>Min. PoE Power Budget</Text>
-              <Text style={styles.cardValue}>{data.poeWattage} Watts Continuous</Text>
-              <Text style={styles.cardSub}>IEEE 802.3at / PoE+ Standard</Text>
+              <Text style={styles.cardLabel}>Calculated NVR Storage</Text>
+              <Text style={styles.cardValue}>{data.storageTB} TB Target</Text>
+              <Text style={styles.cardSub}>{data.retentionDays}-Day Retention ({data.resolution})</Text>
             </View>
             <View style={styles.card}>
-              <Text style={styles.cardLabel}>PoE Switch Spec</Text>
+              <Text style={styles.cardLabel}>PoE Switch Requirement</Text>
               <Text style={styles.cardValue}>{data.cameraCount > 16 ? "24-Port" : "16-Port"} Managed Switch</Text>
-              <Text style={styles.cardSub}>370W PSU Minimum Output</Text>
+              <Text style={styles.cardSub}>Continuous Budget: {data.poeWattage}W Minimum</Text>
             </View>
             <View style={styles.card}>
               <Text style={styles.cardLabel}>Branch Pathway Capacity</Text>
               <Text style={styles.cardValue}>3/4" EMT Conduit</Text>
-              <Text style={styles.cardSub}>{data.conduitFill} Cat6 Max (NEC 40% Rule)</Text>
+              <Text style={styles.cardSub}>{data.conduitFill} Cat6 Max Standard</Text>
             </View>
             <View style={styles.card}>
               <Text style={styles.cardLabel}>Main Pathway Trunk</Text>
               <Text style={styles.cardValue}>12" Wire Basket Tray</Text>
-              <Text style={styles.cardSub}>Home-Run Path to MDF Room</Text>
+              <Text style={styles.cardSub}>Home-Run Path to MDF / Server Room</Text>
             </View>
           </View>
         </View>
 
-        {/* Section 3: Estimated Labor Hours */}
+        {/* Narrative */}
         <View style={styles.section}>
           <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle}>3. Estimated Labor Allocation</Text>
-          </View>
-          <View style={styles.grid}>
-            <View style={styles.card}>
-              <Text style={styles.cardLabel}>Field Mounting & Drops</Text>
-              <Text style={styles.cardValue}>{fieldLaborHours} Hours</Text>
-              <Text style={styles.cardSub}>1.5 hrs / camera location</Text>
-            </View>
-            <View style={styles.card}>
-              <Text style={styles.cardLabel}>MDF Rack & NVR Setup</Text>
-              <Text style={styles.cardValue}>{configLaborHours} Hours</Text>
-              <Text style={styles.cardSub}>Configuration & Testing</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Section 4: Engineering Standards Narrative */}
-        <View style={styles.section}>
-          <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle}>4. Engineering Standards & Compliance</Text>
+            <Text style={styles.sectionTitle}>3. Engineering Standards Narrative</Text>
           </View>
           <Text style={styles.narrativeText}>
-            System sizing calculated in accordance with ANSI/BICSI 005 pathways capacity rules and standard IP stream bitrates. Network switch selection must deliver a continuous PoE budget of at least {data.poeWattage}W across active ports. All Category 6 horizontal cabling runs must not exceed 328 feet (100 meters) without fiber media extension.
+            Infrastructure sizing calculated in accordance with AS/NZS 3000 and ANSI/BICSI 005 pathways rules. Switch selection must deliver an aggregate PoE budget of at least {data.poeWattage}W to accommodate high-draw PTZ and multisensor drops. Category 6 horizontal runs must not exceed 328 ft (100 meters).
           </Text>
         </View>
 
-        {/* Executive Sign-off Block */}
+        {/* Signatures */}
         <View style={styles.signatureContainer}>
           <View style={styles.sigBox}>
             <View style={styles.sigLine} />
             <Text style={styles.sigLabel}>Prepared By (Estimator Signature)</Text>
-            <Text style={styles.sigSub}>SiteSpec Certified Estimator</Text>
+            <Text style={styles.sigSub}>SiteSpec Certified Security Estimator</Text>
           </View>
           <View style={styles.sigBox}>
             <View style={styles.sigLine} />
@@ -363,7 +415,6 @@ const MyDocument = ({ data }: { data: PDFData }) => {
           <Text style={styles.footerText}>Generated via SiteSpec Engineering Engine</Text>
           <Text style={styles.footerText}>Confidential & Proprietary Commercial Scope</Text>
         </View>
-
       </Page>
     </Document>
   );
@@ -374,11 +425,11 @@ export function QuotePDFLink({ data }: { data: PDFData }) {
     <PDFDownloadLink
       document={<MyDocument data={data} />}
       fileName={`SiteSpec_Scope_${data.projectName.replace(/\s+/g, "_")}.pdf`}
-      className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg transition text-sm inline-block cursor-pointer shadow-lg hover:shadow-blue-500/20"
+      className="bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-6 rounded-lg transition text-sm inline-block cursor-pointer shadow-lg hover:shadow-red-600/30 font-mono tracking-wider"
     >
       {/* @ts-ignore */}
       {({ loading }) =>
-        loading ? "Generating Executive Scope PDF..." : "Export Executive Scope PDF"
+        loading ? "Generating Scope PDF..." : "Export Categorized Scope PDF"
       }
     </PDFDownloadLink>
   );

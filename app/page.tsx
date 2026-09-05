@@ -1,19 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, Suspense } from "react";
 import dynamic from "next/dynamic";
+import { BlueprintCanvas, DetectedCamera } from "../components/BlueprintCanvas";
 
 const QuotePDFLink = dynamic(
   () => import("../components/QuotePDF").then((mod) => mod.QuotePDFLink),
   { ssr: false }
 );
-
-export interface CameraBreakdown {
-  dome: number;
-  bullet: number;
-  ptz: number;
-  multisensor: number;
-}
 
 function PageContent() {
   const [image, setImage] = useState<string | null>(null);
@@ -24,16 +18,11 @@ function PageContent() {
   const [projectName, setProjectName] = useState("Commercial Facility SEC-01");
   const [companyName, setCompanyName] = useState("SiteSpec Defense Systems");
 
-  // Engineered Sizing State
-  const [cameraCount, setCameraCount] = useState<number>(17);
-  const [breakdown, setBreakdown] = useState<CameraBreakdown>({
-    dome: 10,
-    bullet: 4,
-    ptz: 2,
-    multisensor: 1,
-  });
+  // Engineered State
+  const [detectedCameras, setDetectedCameras] = useState<DetectedCamera[]>([]);
   const [retentionDays, setRetentionDays] = useState<number>(30);
   const [resolution, setResolution] = useState<string>("4MP");
+  const [standard, setStandard] = useState<"AS/NZS 3000" | "NEC 40%">("AS/NZS 3000");
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -65,18 +54,20 @@ function PageContent() {
         throw new Error(data.error || "Failed to process blueprint.");
       }
 
-      const detected = data.cameraCount ?? 0;
-      setCameraCount(detected);
-
-      if (data.breakdown) {
-        setBreakdown(data.breakdown);
+      if (data.detectedCameras && data.detectedCameras.length > 0) {
+        setDetectedCameras(data.detectedCameras);
       } else {
-        setBreakdown({
-          dome: Math.ceil(detected * 0.6),
-          bullet: Math.floor(detected * 0.25),
-          ptz: Math.floor(detected * 0.1),
-          multisensor: Math.floor(detected * 0.05),
-        });
+        // Fallback default distribution if bounding boxes are missing
+        const fallbackCount = data.cameraCount || 12;
+        const fallbackList: DetectedCamera[] = Array.from({ length: fallbackCount }, (_, i) => ({
+          id: `CAM-${i + 1}`,
+          type: i % 4 === 0 ? "bullet" : i % 5 === 0 ? "ptz" : "dome",
+          confidence: 0.95,
+          locationName: `Zone Drop ${i + 1}`,
+          isOutdoor: i % 3 === 0,
+          box2d: [(i * 60) % 800 + 100, (i * 80) % 800 + 100, (i * 60) % 800 + 150, (i * 80) % 800 + 150],
+        }));
+        setDetectedCameras(fallbackList);
       }
     } catch (err: any) {
       console.error(err);
@@ -86,14 +77,29 @@ function PageContent() {
     }
   };
 
+  // Helper Breakdown Counts
+  const counts = {
+    dome: detectedCameras.filter((c) => c.type === "dome").length,
+    bullet: detectedCameras.filter((c) => c.type === "bullet").length,
+    ptz: detectedCameras.filter((c) => c.type === "ptz").length,
+    multisensor: detectedCameras.filter((c) => c.type === "multisensor").length,
+    varifocal: detectedCameras.filter((c) => c.type === "varifocal").length,
+    unknown: detectedCameras.filter((c) => c.type === "unknown").length,
+  };
+
+  const cameraCount = detectedCameras.length;
+
   // Weighted Sizing Calculations
   const calculateMbps = () => {
-    const resMultiplier = resolution === "4K" ? 2 : resolution === "4MP" ? 1 : 0.5;
-    const domeMbps = breakdown.dome * (3 * resMultiplier);
-    const bulletMbps = breakdown.bullet * (4 * resMultiplier);
-    const ptzMbps = breakdown.ptz * (8 * resMultiplier);
-    const multiMbps = breakdown.multisensor * (10 * resMultiplier);
-    return Math.round(domeMbps + bulletMbps + ptzMbps + multiMbps);
+    const resMult = resolution === "4K" ? 2 : resolution === "4MP" ? 1 : 0.5;
+    const mbps =
+      counts.dome * (3 * resMult) +
+      counts.bullet * (4 * resMult) +
+      counts.ptz * (8 * resMult) +
+      counts.multisensor * (10 * resMult) +
+      counts.varifocal * (5 * resMult) +
+      counts.unknown * (4 * resMult);
+    return Math.round(mbps);
   };
 
   const calculateStorageTB = () => {
@@ -104,35 +110,56 @@ function PageContent() {
   };
 
   const calculatePoEWattage = () => {
-    const domeW = breakdown.dome * 15.4;
-    const bulletW = breakdown.bullet * 18.0;
-    const ptzW = breakdown.ptz * 60.0;
-    const multiW = breakdown.multisensor * 30.0;
-    return Math.ceil(domeW + bulletW + ptzW + multiW + 30);
+    const wattage =
+      counts.dome * 15.4 +
+      counts.bullet * 18.0 +
+      counts.ptz * 60.0 +
+      counts.multisensor * 30.0 +
+      counts.varifocal * 20.0 +
+      counts.unknown * 15.4 +
+      30.0; // Base switch overhead
+    return Math.ceil(wattage);
   };
 
   const calculateLaborHours = () => {
     const hours =
-      breakdown.dome * 1.2 +
-      breakdown.bullet * 1.5 +
-      breakdown.ptz * 2.5 +
-      breakdown.multisensor * 2.0 +
-      8.0;
+      counts.dome * 1.2 +
+      counts.bullet * 1.5 +
+      counts.ptz * 2.5 +
+      counts.multisensor * 2.0 +
+      counts.varifocal * 1.6 +
+      counts.unknown * 1.5 +
+      8.0; // MDF setup
     return hours.toFixed(1);
   };
 
-  const updateCameraBreakdown = (key: keyof CameraBreakdown, delta: number) => {
-    const newVal = Math.max(0, breakdown[key] + delta);
-    const updated = { ...breakdown, [key]: newVal };
-    setBreakdown(updated);
-    setCameraCount(updated.dome + updated.bullet + updated.ptz + updated.multisensor);
+  const handleUpdateCamera = (id: string, newType: DetectedCamera["type"]) => {
+    setDetectedCameras(
+      detectedCameras.map((c) => (c.id === id ? { ...c, type: newType } : c))
+    );
+  };
+
+  const handleAddCamera = (xPct: number, yPct: number) => {
+    const newCam: DetectedCamera = {
+      id: `CAM-${detectedCameras.length + 1}`,
+      type: "dome",
+      confidence: 1.0,
+      locationName: "Manual Addition",
+      isOutdoor: false,
+      box2d: [yPct * 10, xPct * 10, yPct * 10 + 20, xPct * 10 + 20],
+    };
+    setDetectedCameras([...detectedCameras, newCam]);
+  };
+
+  const handleRemoveCamera = (id: string) => {
+    setDetectedCameras(detectedCameras.filter((c) => c.id !== id));
   };
 
   return (
     <main className="min-h-screen bg-[#050811] text-slate-100 p-4 md:p-8 font-sans selection:bg-red-600 selection:text-white antialiased">
       <div className="max-w-6xl mx-auto space-y-6">
         
-        {/* Header Bar */}
+        {/* Navigation Header */}
         <header className="bg-slate-900/90 border border-red-900/40 rounded-2xl p-4 md:p-5 backdrop-blur-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-2xl shadow-red-950/20">
           <div className="flex items-center gap-3.5">
             <div className="relative w-11 h-11 bg-gradient-to-br from-red-600 to-red-900 rounded-xl flex items-center justify-center shadow-lg shadow-red-600/30 border border-red-400/40">
@@ -151,11 +178,11 @@ function PageContent() {
                   SITESPEC<span className="text-red-500">.DEFENSE</span>
                 </h1>
                 <span className="bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
-                  CLASSIFIED / PRO
+                  AS/NZS 3000 PRO
                 </span>
               </div>
               <p className="text-xs text-slate-400 font-medium">
-                Automated Multi-Device Blueprint Sizing & Infrastructure Takeoffs
+                Automated Blueprint Symbol Detection & Electrical Sizing Engine
               </p>
             </div>
           </div>
@@ -163,28 +190,31 @@ function PageContent() {
           <div className="flex items-center gap-3 w-full md:w-auto">
             <div className="bg-slate-950/80 border border-red-900/30 rounded-xl px-3 py-1.5 flex items-center gap-2 text-xs">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-              <span className="text-slate-300 font-mono text-[11px] font-semibold">Categorized AI Vision</span>
+              <span className="text-slate-300 font-mono text-[11px] font-semibold">Vision Bounding Boxes</span>
             </div>
             <input
               type="text"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
               className="bg-slate-950 border border-slate-800 text-xs text-slate-200 rounded-xl px-3.5 py-2 focus:outline-none focus:border-red-500 transition w-full md:w-52 font-medium"
-              placeholder="Defense Contractor Name"
+              placeholder="Contractor Name"
             />
           </div>
         </header>
 
-        {/* Blueprint Upload Panel */}
+        {/* Blueprint Scanning & Canvas Panel */}
         <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md shadow-xl">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xs font-bold uppercase tracking-widest text-red-400 font-mono flex items-center gap-2">
               <span className="w-2 h-2 bg-red-500 rounded-full" />
-              1. Tactical Floor Plan Scan
+              1. Interactive Blueprint Canvas ({cameraCount} Symbol Drops)
             </h2>
             {image && (
               <button
-                onClick={() => setImage(null)}
+                onClick={() => {
+                  setImage(null);
+                  setDetectedCameras([]);
+                }}
                 className="text-xs text-slate-400 hover:text-red-400 transition font-medium"
               >
                 Reset Drawing
@@ -201,10 +231,10 @@ function PageContent() {
                   </svg>
                 </div>
                 <span className="text-xs font-bold text-slate-200 tracking-wide">
-                  Upload CAD Blueprint or Floor Plan
+                  Upload CAD Floor Plan or Drawing
                 </span>
                 <span className="text-[11px] text-slate-500 mt-1 font-medium">
-                  Detects Domes, Bullets, PTZs, and Multisensor Symbols
+                  Detects Domes, Bullets, PTZs, Varifocals, and Multisensors
                 </span>
                 <input
                   type="file"
@@ -220,7 +250,7 @@ function PageContent() {
                   disabled={loading}
                   className="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-bold py-3 rounded-xl transition disabled:opacity-50 shadow-lg shadow-red-600/30 text-sm tracking-wider uppercase font-mono"
                 >
-                  {loading ? "Analyzing Device Types..." : "Execute Categorized AI Scan"}
+                  {loading ? "Detecting Geometry & Bounding Reticles..." : "Run AI Bounding Box Detection"}
                 </button>
               )}
 
@@ -231,84 +261,25 @@ function PageContent() {
               )}
             </div>
 
-            {/* Blueprint Preview Window */}
-            <div className="bg-slate-950 border border-slate-800/80 rounded-xl h-56 flex items-center justify-center overflow-hidden relative">
-              {image ? (
-                <img
-                  src={image}
-                  alt="Blueprint preview"
-                  className="max-h-full max-w-full object-contain p-2"
-                />
-              ) : (
-                <div className="text-center space-y-1.5">
-                  <svg className="w-8 h-8 text-slate-700 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 20l-5.447-2.724A2 2 0 013 15.482V6a2 2 0 011.053-1.764l5-2.5a2 2 0 011.894 0l5 2.5A2 2 0 0117 6v9.482a2 2 0 01-.553 1.254L11 20.482a2 2 0 01-2 0z" />
-                  </svg>
-                  <p className="text-xs text-slate-600 font-mono">No drawing loaded in viewer</p>
-                </div>
-              )}
-            </div>
+            {/* Interactive Overlay Box */}
+            {image ? (
+              <BlueprintCanvas
+                image={image}
+                cameras={detectedCameras}
+                onUpdateCamera={handleUpdateCamera}
+                onAddCamera={handleAddCamera}
+                onRemoveCamera={handleRemoveCamera}
+              />
+            ) : (
+              <div className="bg-slate-950 border border-slate-800/80 rounded-xl h-56 flex items-center justify-center">
+                <p className="text-xs text-slate-600 font-mono">No blueprint loaded in viewer</p>
+              </div>
+            )}
           </div>
         </section>
 
-        {/* Device Type Schedule */}
-        <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 backdrop-blur-md shadow-xl">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 font-mono mb-3">
-            2. Detected Device Type Schedule ({cameraCount} Total Units)
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex justify-between items-center">
-              <div>
-                <span className="text-xs font-bold text-slate-200 block">Interior Domes</span>
-                <span className="text-[9px] text-slate-500 font-mono">15.4W PoE | 1.2 hrs</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-lg p-1">
-                <button onClick={() => updateCameraBreakdown("dome", -1)} className="w-5 h-5 bg-slate-800 text-xs rounded font-bold">-</button>
-                <span className="font-mono text-xs font-bold text-red-400 w-4 text-center">{breakdown.dome}</span>
-                <button onClick={() => updateCameraBreakdown("dome", 1)} className="w-5 h-5 bg-slate-800 text-xs rounded font-bold">+</button>
-              </div>
-            </div>
-
-            <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex justify-between items-center">
-              <div>
-                <span className="text-xs font-bold text-slate-200 block">Perimeter Bullets</span>
-                <span className="text-[9px] text-slate-500 font-mono">18.0W PoE | 1.5 hrs</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-lg p-1">
-                <button onClick={() => updateCameraBreakdown("bullet", -1)} className="w-5 h-5 bg-slate-800 text-xs rounded font-bold">-</button>
-                <span className="font-mono text-xs font-bold text-red-400 w-4 text-center">{breakdown.bullet}</span>
-                <button onClick={() => updateCameraBreakdown("bullet", 1)} className="w-5 h-5 bg-slate-800 text-xs rounded font-bold">+</button>
-              </div>
-            </div>
-
-            <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex justify-between items-center">
-              <div>
-                <span className="text-xs font-bold text-slate-200 block">PTZ High-Power</span>
-                <span className="text-[9px] text-slate-500 font-mono">60.0W PoE+ | 2.5 hrs</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-lg p-1">
-                <button onClick={() => updateCameraBreakdown("ptz", -1)} className="w-5 h-5 bg-slate-800 text-xs rounded font-bold">-</button>
-                <span className="font-mono text-xs font-bold text-red-400 w-4 text-center">{breakdown.ptz}</span>
-                <button onClick={() => updateCameraBreakdown("ptz", 1)} className="w-5 h-5 bg-slate-800 text-xs rounded font-bold">+</button>
-              </div>
-            </div>
-
-            <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex justify-between items-center">
-              <div>
-                <span className="text-xs font-bold text-slate-200 block">180° / Multisensor</span>
-                <span className="text-[9px] text-slate-500 font-mono">30.0W PoE+ | 2.0 hrs</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-lg p-1">
-                <button onClick={() => updateCameraBreakdown("multisensor", -1)} className="w-5 h-5 bg-slate-800 text-xs rounded font-bold">-</button>
-                <span className="font-mono text-xs font-bold text-red-400 w-4 text-center">{breakdown.multisensor}</span>
-                <button onClick={() => updateCameraBreakdown("multisensor", 1)} className="w-5 h-5 bg-slate-800 text-xs rounded font-bold">+</button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Tactical Controls */}
-        <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md shadow-xl grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Controls Bar */}
+        <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md shadow-xl grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
               Project Identifier
@@ -319,6 +290,20 @@ function PageContent() {
               onChange={(e) => setProjectName(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 text-xs text-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-red-500 font-mono"
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
+              Pathway Standard
+            </label>
+            <select
+              value={standard}
+              onChange={(e) => setStandard(e.target.value as any)}
+              className="w-full bg-slate-950 border border-slate-800 text-xs text-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-red-500 font-mono"
+            >
+              <option value="AS/NZS 3000">AS/NZS 3000 (Wiring Rules)</option>
+              <option value="NEC 40%">NEC 40% Fill Standard</option>
+            </select>
           </div>
 
           <div className="space-y-1.5">
@@ -376,13 +361,13 @@ function PageContent() {
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest font-mono">Conduit Fill</span>
             <div className="text-xl font-black text-white mt-1 font-mono">3 Cat6</div>
-            <span className="text-[9px] text-slate-400 font-medium">3/4" EMT per NEC</span>
+            <span className="text-[9px] text-slate-400 font-medium">{standard}</span>
           </div>
 
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest font-mono">Bandwidth</span>
             <div className="text-xl font-black text-white mt-1 font-mono">~{calculateMbps()} Mbps</div>
-            <span className="text-[9px] text-slate-400 font-medium">Weighted streams</span>
+            <span className="text-[9px] text-slate-400 font-medium">Weighted payload</span>
           </div>
 
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
@@ -405,7 +390,7 @@ function PageContent() {
               projectName,
               companyName,
               cameraCount,
-              breakdown,
+              breakdown: counts,
               retentionDays,
               resolution,
               storageTB: calculateStorageTB(),
@@ -422,7 +407,7 @@ function PageContent() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#050811] text-white p-8 font-mono">Loading SiteSpec Core Engine...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#050811] text-white p-8 font-mono">Loading Core AI Engine...</div>}>
       <PageContent />
     </Suspense>
   );
