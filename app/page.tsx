@@ -18,7 +18,7 @@ function PageContent() {
   const [projectName, setProjectName] = useState("Commercial Facility SEC-01");
   const [companyName, setCompanyName] = useState("SiteSpec Defense Systems");
 
-  // Engineered State
+  // State
   const [detectedCameras, setDetectedCameras] = useState<DetectedCamera[]>([]);
   const [retentionDays, setRetentionDays] = useState<number>(30);
   const [resolution, setResolution] = useState<string>("4MP");
@@ -57,17 +57,7 @@ function PageContent() {
       if (data.detectedCameras && data.detectedCameras.length > 0) {
         setDetectedCameras(data.detectedCameras);
       } else {
-        // Fallback default distribution if bounding boxes are missing
-        const fallbackCount = data.cameraCount || 12;
-        const fallbackList: DetectedCamera[] = Array.from({ length: fallbackCount }, (_, i) => ({
-          id: `CAM-${i + 1}`,
-          type: i % 4 === 0 ? "bullet" : i % 5 === 0 ? "ptz" : "dome",
-          confidence: 0.95,
-          locationName: `Zone Drop ${i + 1}`,
-          isOutdoor: i % 3 === 0,
-          box2d: [(i * 60) % 800 + 100, (i * 80) % 800 + 100, (i * 60) % 800 + 150, (i * 80) % 800 + 150],
-        }));
-        setDetectedCameras(fallbackList);
+        setDetectedCameras([]);
       }
     } catch (err: any) {
       console.error(err);
@@ -77,7 +67,7 @@ function PageContent() {
     }
   };
 
-  // Helper Breakdown Counts
+  // Helper Counts
   const counts = {
     dome: detectedCameras.filter((c) => c.type === "dome").length,
     bullet: detectedCameras.filter((c) => c.type === "bullet").length,
@@ -89,7 +79,7 @@ function PageContent() {
 
   const cameraCount = detectedCameras.length;
 
-  // Weighted Sizing Calculations
+  // Weighted Calculations
   const calculateMbps = () => {
     const resMult = resolution === "4K" ? 2 : resolution === "4MP" ? 1 : 0.5;
     const mbps =
@@ -117,7 +107,7 @@ function PageContent() {
       counts.multisensor * 30.0 +
       counts.varifocal * 20.0 +
       counts.unknown * 15.4 +
-      30.0; // Base switch overhead
+      30.0;
     return Math.ceil(wattage);
   };
 
@@ -129,10 +119,11 @@ function PageContent() {
       counts.multisensor * 2.0 +
       counts.varifocal * 1.6 +
       counts.unknown * 1.5 +
-      8.0; // MDF setup
+      8.0;
     return hours.toFixed(1);
   };
 
+  // User Correction Handlers
   const handleUpdateCamera = (id: string, newType: DetectedCamera["type"]) => {
     setDetectedCameras(
       detectedCameras.map((c) => (c.id === id ? { ...c, type: newType } : c))
@@ -146,7 +137,7 @@ function PageContent() {
       confidence: 1.0,
       locationName: "Manual Addition",
       isOutdoor: false,
-      box2d: [yPct * 10, xPct * 10, yPct * 10 + 20, xPct * 10 + 20],
+      box2d: [yPct * 10 - 15, xPct * 10 - 15, yPct * 10 + 15, xPct * 10 + 15],
     };
     setDetectedCameras([...detectedCameras, newCam]);
   };
@@ -159,7 +150,7 @@ function PageContent() {
     <main className="min-h-screen bg-[#050811] text-slate-100 p-4 md:p-8 font-sans selection:bg-red-600 selection:text-white antialiased">
       <div className="max-w-6xl mx-auto space-y-6">
         
-        {/* Navigation Header */}
+        {/* Header Bar */}
         <header className="bg-slate-900/90 border border-red-900/40 rounded-2xl p-4 md:p-5 backdrop-blur-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-2xl shadow-red-950/20">
           <div className="flex items-center gap-3.5">
             <div className="relative w-11 h-11 bg-gradient-to-br from-red-600 to-red-900 rounded-xl flex items-center justify-center shadow-lg shadow-red-600/30 border border-red-400/40">
@@ -182,7 +173,7 @@ function PageContent() {
                 </span>
               </div>
               <p className="text-xs text-slate-400 font-medium">
-                Automated Blueprint Symbol Detection & Electrical Sizing Engine
+                Automated Blueprint Precision Detection & Engineering Sizing
               </p>
             </div>
           </div>
@@ -190,7 +181,7 @@ function PageContent() {
           <div className="flex items-center gap-3 w-full md:w-auto">
             <div className="bg-slate-950/80 border border-red-900/30 rounded-xl px-3 py-1.5 flex items-center gap-2 text-xs">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-              <span className="text-slate-300 font-mono text-[11px] font-semibold">Vision Bounding Boxes</span>
+              <span className="text-slate-300 font-mono text-[11px] font-semibold">Precision Reticles</span>
             </div>
             <input
               type="text"
@@ -202,12 +193,12 @@ function PageContent() {
           </div>
         </header>
 
-        {/* Blueprint Scanning & Canvas Panel */}
+        {/* Blueprint Scanning & Interactive Overlay */}
         <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md shadow-xl">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xs font-bold uppercase tracking-widest text-red-400 font-mono flex items-center gap-2">
               <span className="w-2 h-2 bg-red-500 rounded-full" />
-              1. Interactive Blueprint Canvas ({cameraCount} Symbol Drops)
+              1. Interactive Blueprint Canvas ({cameraCount} Symbol Drops Detected)
             </h2>
             {image && (
               <button
@@ -234,7 +225,7 @@ function PageContent() {
                   Upload CAD Floor Plan or Drawing
                 </span>
                 <span className="text-[11px] text-slate-500 mt-1 font-medium">
-                  Detects Domes, Bullets, PTZs, Varifocals, and Multisensors
+                  Type Legend Legend: Blue = Dome, Red = Bullet, Yellow = PTZ
                 </span>
                 <input
                   type="file"
@@ -250,7 +241,7 @@ function PageContent() {
                   disabled={loading}
                   className="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-bold py-3 rounded-xl transition disabled:opacity-50 shadow-lg shadow-red-600/30 text-sm tracking-wider uppercase font-mono"
                 >
-                  {loading ? "Detecting Geometry & Bounding Reticles..." : "Run AI Bounding Box Detection"}
+                  {loading ? "Detecting Geometry & Bounding Reticles..." : "Run AI Precision Symbol Detection"}
                 </button>
               )}
 
@@ -261,7 +252,7 @@ function PageContent() {
               )}
             </div>
 
-            {/* Interactive Overlay Box */}
+            {/* Interactive Canvas Overlay Component */}
             {image ? (
               <BlueprintCanvas
                 image={image}
@@ -278,7 +269,7 @@ function PageContent() {
           </div>
         </section>
 
-        {/* Controls Bar */}
+        {/* Tactical Controls */}
         <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md shadow-xl grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
