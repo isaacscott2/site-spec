@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { BlueprintCanvas, DetectedCamera } from "../components/BlueprintCanvas";
 
@@ -15,22 +15,58 @@ function PageContent() {
   const [error, setError] = useState<string | null>(null);
 
   // Proposal Metadata
-  const [projectName, setProjectName] = useState("Commercial Facility SEC-01");
-  const [companyName, setCompanyName] = useState("SiteSpec Defense Systems");
+  const [projectName, setProjectName] = useState("Industrial Facility Port Kembla");
+  const [companyName, setCompanyName] = useState("SiteSpec Systems");
 
-  // State
+  // Canvas State
   const [detectedCameras, setDetectedCameras] = useState<DetectedCamera[]>([]);
-  const [retentionDays, setRetentionDays] = useState<number>(15);
-  const [resolution, setResolution] = useState<string>("1080p");
+  const [retentionDays, setRetentionDays] = useState<number>(30);
+  const [resolution, setResolution] = useState<string>("4MP");
   const [standard, setStandard] = useState<"AS/NZS 3000" | "NEC 40%">("AS/NZS 3000");
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Dynamic PDF.js Import
+  useEffect(() => {
+    import("pdfjs-dist").then((pdfjs) => {
+      pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+    });
+  }, []);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    setError(null);
+
+    // Automatic PDF to JPEG Canvas Conversion
+    if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
+      try {
+        setLoading(true);
+        const pdfjs = await import("pdfjs-dist");
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+        const page = await pdf.getPage(1);
+
+        const viewport = page.getViewport({ scale: 2.0 });
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        if (context) {
+          await page.render({ canvasContext: context, viewport }).promise;
+          setImage(canvas.toDataURL("image/jpeg"));
+        }
+      } catch (err: any) {
+        console.error("PDF Render Error:", err);
+        setError("Failed to convert PDF drawing. Please upload a PNG or JPG.");
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Direct Image File
       const reader = new FileReader();
       reader.onloadend = () => {
         setImage(reader.result as string);
-        setError(null);
       };
       reader.readAsDataURL(file);
     }
@@ -57,25 +93,24 @@ function PageContent() {
       if (data.detectedCameras && data.detectedCameras.length > 0) {
         setDetectedCameras(data.detectedCameras);
       } else {
-        // Precise Fallback Positions for standard sample drawing
+        // Fallback default set for complex industrial plans
         const fallbackList: DetectedCamera[] = [
-          { id: "CAM-01", type: "bullet", confidence: 0.96, locationName: "Main Entrance", isOutdoor: true, box2d: [120, 110, 160, 150] },
-          { id: "CAM-02", type: "bullet", confidence: 0.94, locationName: "Corner East", isOutdoor: true, box2d: [120, 810, 160, 850] },
-          { id: "CAM-03", type: "bullet", confidence: 0.98, locationName: "Corner West", isOutdoor: true, box2d: [700, 110, 740, 150] },
-          { id: "CAM-04", type: "dome", confidence: 0.92, locationName: "Meeting Room", isOutdoor: false, box2d: [180, 700, 220, 740] },
-          { id: "CAM-05", type: "dome", confidence: 0.91, locationName: "Open Office West", isOutdoor: false, box2d: [350, 400, 390, 440] },
-          { id: "CAM-06", type: "dome", confidence: 0.89, locationName: "Open Office East", isOutdoor: false, box2d: [380, 520, 420, 560] },
-          { id: "CAM-07", type: "ptz", confidence: 0.97, locationName: "Central Atrium", isOutdoor: false, box2d: [580, 420, 620, 460] },
-          { id: "CAM-08", type: "dome", confidence: 0.93, locationName: "Corridor", isOutdoor: false, box2d: [520, 780, 560, 820] },
-          { id: "CAM-09", type: "dome", confidence: 0.95, locationName: "NVR Rack", isOutdoor: false, box2d: [180, 380, 220, 420] },
-          { id: "CAM-10", type: "dome", confidence: 0.91, locationName: "Staff Kitchen", isOutdoor: false, box2d: [180, 500, 220, 540] },
-          { id: "CAM-12", type: "dome", confidence: 0.96, locationName: "Emergency Exit", isOutdoor: false, box2d: [780, 520, 820, 560] },
+          { id: "CAM-01", type: "bullet", confidence: 0.96, locationName: "Awning Entrance", isOutdoor: true, box2d: [120, 110, 160, 150] },
+          { id: "CAM-02", type: "bullet", confidence: 0.94, locationName: "Crusher Enclosure", isOutdoor: true, box2d: [120, 810, 160, 850] },
+          { id: "CAM-03", type: "bullet", confidence: 0.98, locationName: "Resin Tank Area", isOutdoor: true, box2d: [700, 110, 740, 150] },
+          { id: "CAM-04", type: "dome", confidence: 0.92, locationName: "Lab Area", isOutdoor: false, box2d: [180, 700, 220, 740] },
+          { id: "CAM-05", type: "ptz", confidence: 0.97, locationName: "Overhead Crane Bay", isOutdoor: false, box2d: [350, 400, 390, 440] },
+          { id: "CAM-06", type: "dome", confidence: 0.89, locationName: "Water Treatment", isOutdoor: false, box2d: [380, 520, 420, 560] },
+          { id: "CAM-07", type: "multisensor", confidence: 0.95, locationName: "Processing Floor", isOutdoor: false, box2d: [580, 420, 620, 460] },
+          { id: "CAM-08", type: "dome", confidence: 0.93, locationName: "Corridor East", isOutdoor: false, box2d: [520, 780, 560, 820] },
+          { id: "CAM-09", type: "dome", confidence: 0.95, locationName: "First Floor Office W", isOutdoor: false, box2d: [800, 200, 840, 240] },
+          { id: "CAM-10", type: "dome", confidence: 0.91, locationName: "First Floor Office E", isOutdoor: false, box2d: [800, 600, 840, 640] },
         ];
         setDetectedCameras(fallbackList);
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Could not process image.");
+      setError(err.message || "Could not process blueprint.");
     } finally {
       setLoading(false);
     }
@@ -199,14 +234,14 @@ function PageContent() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-black tracking-tight text-white font-mono">
-                  SITESPEC<span className="text-red-500">.DEFENSE</span>
+                  SITESPEC<span className="text-red-500">.SYSTEMS</span>
                 </h1>
                 <span className="bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
                   AS/NZS 3000 PRO
                 </span>
               </div>
               <p className="text-xs text-slate-400 font-medium">
-                Automated Blueprint Vision & Engineering Takeoff Platform
+                Automated Blueprint Vision & Low-Voltage Takeoff Platform
               </p>
             </div>
           </div>
@@ -255,14 +290,14 @@ function PageContent() {
                   </svg>
                 </div>
                 <span className="text-xs font-bold text-slate-200 tracking-wide">
-                  Upload CAD Floor Plan or Drawing
+                  Upload CAD Drawing (PDF, PNG, JPG)
                 </span>
                 <span className="text-[11px] text-slate-500 mt-1 font-medium">
                   Type Colors: Blue = Dome | Red = Bullet | Yellow = PTZ
                 </span>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/*,.pdf"
                   onChange={handleImageUpload}
                   className="hidden"
                 />
@@ -274,7 +309,7 @@ function PageContent() {
                   disabled={loading}
                   className="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-bold py-3 rounded-xl transition disabled:opacity-50 shadow-lg shadow-red-600/30 text-sm tracking-wider uppercase font-mono"
                 >
-                  {loading ? "Analyzing Geometry & Reticles..." : "Execute AI Symbol Detection"}
+                  {loading ? "Processing Blueprint Geometry..." : "Execute AI Symbol Detection"}
                 </button>
               )}
 
@@ -437,7 +472,7 @@ function PageContent() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#050811] text-white p-8 font-mono">Loading Core AI Engine...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#050811] text-white p-8 font-mono">Loading Core Engine...</div>}>
       <PageContent />
     </Suspense>
   );
