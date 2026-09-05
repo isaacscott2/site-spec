@@ -27,11 +27,12 @@ export interface PDFData {
   storageTB: string;
   poeWattage: number;
   conduitFill: number;
+  estimatedCableMeters?: number;
 }
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 32,
+    paddingTop: 30,
     paddingBottom: 36,
     paddingHorizontal: 36,
     backgroundColor: "#ffffff",
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     borderBottomWidth: 2,
     borderBottomColor: "#0f172a",
-    marginBottom: 12,
+    marginBottom: 10,
   },
   companyName: {
     fontSize: 20,
@@ -82,7 +83,7 @@ const styles = StyleSheet.create({
     padding: 8,
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 10,
   },
   heroItem: {
     flex: 1,
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   sectionTitle: {
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: "bold",
     color: "#0f172a",
     textTransform: "uppercase",
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e2e8f0",
     borderRadius: 3,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   tableHeader: {
     flexDirection: "row",
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
   },
   tableRow: {
     flexDirection: "row",
-    paddingVertical: 4,
+    paddingVertical: 3.5,
     paddingHorizontal: 6,
     borderBottomWidth: 1,
     borderBottomColor: "#f1f5f9",
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
   col2: { width: "15%", fontSize: 7.5, color: "#0f172a", textAlign: "center" },
   col3: { width: "25%", fontSize: 7.5, color: "#475569" },
   col4: { width: "25%", fontSize: 7.5, color: "#475569" },
-  th: { fontSize: 7, fontWeight: "bold", color: "#475569", textTransform: "uppercase" },
+  th: { fontSize: 6.5, fontWeight: "bold", color: "#475569", textTransform: "uppercase" },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -157,8 +158,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#f1f5f9",
     borderRadius: 3,
-    padding: 6,
-    marginBottom: 5,
+    padding: 5,
+    marginBottom: 4,
   },
   cardLabel: {
     fontSize: 6.5,
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   cardValue: {
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: "bold",
     color: "#0f172a",
     marginTop: 1,
@@ -177,9 +178,9 @@ const styles = StyleSheet.create({
     color: "#94a3b8",
   },
   narrativeText: {
-    fontSize: 7.5,
+    fontSize: 7,
     color: "#334155",
-    lineHeight: 1.4,
+    lineHeight: 1.35,
     backgroundColor: "#fafafa",
     padding: 6,
     borderRadius: 3,
@@ -187,8 +188,8 @@ const styles = StyleSheet.create({
     borderColor: "#f1f5f9",
   },
   signatureContainer: {
-    marginTop: 12,
-    paddingTop: 10,
+    marginTop: 10,
+    paddingTop: 8,
     flexDirection: "row",
     justifyContent: "space-between",
   },
@@ -212,7 +213,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: "absolute",
-    bottom: 20,
+    bottom: 16,
     left: 36,
     right: 36,
     borderTopWidth: 1,
@@ -245,12 +246,13 @@ const MyDocument = ({ data }: { data: PDFData }) => {
   ).toFixed(1);
 
   const totalLaborHours = (parseFloat(fieldLaborHours) + 8).toFixed(1);
+  const totalCableMeters = data.estimatedCableMeters || data.cameraCount * 45;
 
   return (
     <Document>
       <Page size="LETTER" style={styles.page}>
         
-        {/* Header */}
+        {/* Document Header */}
         <View style={styles.headerContainer}>
           <View>
             <Text style={styles.companyName}>{data.companyName.toUpperCase()}</Text>
@@ -259,15 +261,15 @@ const MyDocument = ({ data }: { data: PDFData }) => {
             </Text>
           </View>
           <View style={styles.metaBlock}>
-            <Text style={styles.badge}>AS/NZS & BICSI COMPLIANT</Text>
+            <Text style={styles.badge}>AS/NZS 3000 & PRIVACY COMPLIANT</Text>
             <Text style={styles.metaText}>
               DATE: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
             </Text>
-            <Text style={styles.metaText}>CATEGORIZED HARDWARE SCOPE</Text>
+            <Text style={styles.metaText}>DETAILED SCOPE & CABLE SCHEDULE</Text>
           </View>
         </View>
 
-        {/* Hero Summary */}
+        {/* Executive Summary Bar */}
         <View style={styles.heroBar}>
           <View style={[styles.heroItem, styles.heroBorder]}>
             <Text style={styles.heroLabel}>Total Cameras</Text>
@@ -287,7 +289,7 @@ const MyDocument = ({ data }: { data: PDFData }) => {
           </View>
         </View>
 
-        {/* Table Schedule */}
+        {/* Section 1: Itemized Hardware Breakdown */}
         <View style={styles.section}>
           <View style={styles.sectionTitleContainer}>
             <Text style={styles.sectionTitle}>1. Categorized Camera Hardware Schedule</Text>
@@ -357,10 +359,10 @@ const MyDocument = ({ data }: { data: PDFData }) => {
           </View>
         </View>
 
-        {/* Infrastructure Section */}
+        {/* Section 2: Infrastructure & Cable Run Sizing */}
         <View style={styles.section}>
           <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle}>2. Infrastructure & Head-End Sizing</Text>
+            <Text style={styles.sectionTitle}>2. Infrastructure & Cable Pathway Sizing</Text>
           </View>
           <View style={styles.grid}>
             <View style={styles.card}>
@@ -374,25 +376,25 @@ const MyDocument = ({ data }: { data: PDFData }) => {
               <Text style={styles.cardSub}>Continuous Budget: {data.poeWattage}W Minimum</Text>
             </View>
             <View style={styles.card}>
-              <Text style={styles.cardLabel}>Branch Pathway Capacity</Text>
-              <Text style={styles.cardValue}>3/4" EMT Conduit</Text>
-              <Text style={styles.cardSub}>{data.conduitFill} Cat6 Max Standard</Text>
+              <Text style={styles.cardLabel}>Cat6 Horizontal Cabling</Text>
+              <Text style={styles.cardValue}>~{totalCableMeters} Meters Total</Text>
+              <Text style={styles.cardSub}>Blue Home-Runs to NVR Rack</Text>
             </View>
             <View style={styles.card}>
-              <Text style={styles.cardLabel}>Main Pathway Trunk</Text>
-              <Text style={styles.cardValue}>12" Wire Basket Tray</Text>
-              <Text style={styles.cardSub}>Home-Run Path to MDF / Server Room</Text>
+              <Text style={styles.cardLabel}>Branch Pathway Capacity</Text>
+              <Text style={styles.cardValue}>3/4" EMT Conduit</Text>
+              <Text style={styles.cardSub}>{data.conduitFill} Cat6 Max (AS/NZS 3000 Rules)</Text>
             </View>
           </View>
         </View>
 
-        {/* Narrative */}
+        {/* Section 3: Australian Compliance Narrative */}
         <View style={styles.section}>
           <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle}>3. Engineering Standards Narrative</Text>
+            <Text style={styles.sectionTitle}>3. Engineering Standards & Privacy Compliance</Text>
           </View>
           <Text style={styles.narrativeText}>
-            Infrastructure sizing calculated in accordance with AS/NZS 3000 and ANSI/BICSI 005 pathways rules. Switch selection must deliver an aggregate PoE budget of at least {data.poeWattage}W to accommodate high-draw PTZ and multisensor drops. Category 6 horizontal runs must not exceed 328 ft (100 meters).
+            Infrastructure sizing calculated in accordance with AS/NZS 3000 wiring rules and ANSI/BICSI 005 pathways guidelines[cite: 3]. Network switches must supply continuous PoE headroom across active ports[cite: 3]. Horizontal Category 6 cabling runs must not exceed 90 meters (300 feet) without PoE extender hardware or fiber transceivers[cite: 3]. System installation must comply with Australian Privacy Principles (APP) regarding workplace optical surveillance disclosures[cite: 3].
           </Text>
         </View>
 
@@ -415,6 +417,7 @@ const MyDocument = ({ data }: { data: PDFData }) => {
           <Text style={styles.footerText}>Generated via SiteSpec Engineering Engine</Text>
           <Text style={styles.footerText}>Confidential & Proprietary Commercial Scope</Text>
         </View>
+
       </Page>
     </Document>
   );
