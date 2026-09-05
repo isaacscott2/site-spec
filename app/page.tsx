@@ -24,10 +24,10 @@ function PageContent() {
   const [resolution, setResolution] = useState<string>("4MP");
   const [standard, setStandard] = useState<"AS/NZS 3000" | "NEC 40%">("AS/NZS 3000");
 
-  // Dynamic PDF.js Import
+  // Dynamic PDF.js Import with Version-Matched Worker CDN
   useEffect(() => {
     import("pdfjs-dist").then((pdfjs) => {
-      pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+      pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
     });
   }, []);
 
@@ -53,7 +53,7 @@ function PageContent() {
         canvas.width = viewport.width;
 
         if (context) {
-          await page.render({ canvasContext: context, viewport }).promise;
+          await page.render({ canvas, canvasContext: context, viewport }).promise;
           setImage(canvas.toDataURL("image/jpeg"));
         }
       } catch (err: any) {
@@ -102,7 +102,7 @@ function PageContent() {
           { id: "CAM-05", type: "ptz", confidence: 0.97, locationName: "Overhead Crane Bay", isOutdoor: false, box2d: [350, 400, 390, 440] },
           { id: "CAM-06", type: "dome", confidence: 0.89, locationName: "Water Treatment", isOutdoor: false, box2d: [380, 520, 420, 560] },
           { id: "CAM-07", type: "multisensor", confidence: 0.95, locationName: "Processing Floor", isOutdoor: false, box2d: [580, 420, 620, 460] },
-          { id: "CAM-08", type: "dome", confidence: 0.93, locationName: "Corridor East", isOutdoor: false, box2d: [520, 780, 560, 820] },
+          { id: "CAM-08", type: "dome", confidence: 0.89, locationName: "Corridor East", isOutdoor: false, box2d: [520, 780, 560, 820] },
           { id: "CAM-09", type: "dome", confidence: 0.95, locationName: "First Floor Office W", isOutdoor: false, box2d: [800, 200, 840, 240] },
           { id: "CAM-10", type: "dome", confidence: 0.91, locationName: "First Floor Office E", isOutdoor: false, box2d: [800, 600, 840, 640] },
         ];
@@ -413,7 +413,7 @@ function PageContent() {
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest font-mono">PoE Power</span>
             <div className="text-xl font-black text-red-400 mt-1 font-mono">{calculatePoEWattage()} W</div>
-            <span className="text-[9px] text-slate-400 font-medium">Weighted loads</span>
+            <span className="text-[9px] text-slate-400 font-medium font-mono">Weighted loads</span>
           </div>
 
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
